@@ -75,7 +75,12 @@ func main() {
 	sortout := flag.String("o", "", "CSV output file name; default STDOUT")
 	headers := flag.Bool("headers", true, "CSV has headers")
 	colmap := flag.String("m", "", "Map to use instead of column values")
+	help := flag.Bool("help",false,"Show help message")
 	flag.Parse()
+
+	if *help {
+		usage()
+		os.Exit(0)	}
 
 	if len(flag.Args()) > 0 {
 		usage()

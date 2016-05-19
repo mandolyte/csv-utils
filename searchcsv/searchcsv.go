@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.build.ge.com/210019484/rangespec"
+	"github.com/mandolyte/rangespec"
 )
 
 var cs *rangespec.RangeSpec
@@ -24,7 +24,13 @@ func main() {
 	headers := flag.Bool("headers", true, "CSV has headers")
 	keep := flag.Bool("keep", true, "Keep CSV headers on output")
 	regex := flag.Bool("re", false, "Search pattern is a regular expression")
+	help := flag.Bool("help", false, "Show help message")
 	flag.Parse()
+
+	if *help {
+		usage("Help Message")
+		os.Exit(0)
+	}
 
 	/* check parameters */
 	if *pattern == "" {
