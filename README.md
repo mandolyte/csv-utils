@@ -67,23 +67,23 @@ Use the -help argument to show:
 $ go run searchcsv.go -help
 Help Message
 
-Usage: splitcsv [options] input.csv output.csv
+Usage: searchcsv [options] input.csv output.csv
   -c string
-    	Range spec for columns
+      Range spec for columns
   -headers
-    	CSV has headers (default true)
+      CSV has headers (default true)
   -help
-    	Show help message
+      Show help message
   -i string
-    	Input CSV filename; default STDIN
+      Input CSV filename; default STDIN
   -keep
-    	Keep CSV headers on output (default true)
+      Keep CSV headers on output (default true)
   -o string
-    	Output CSV filename; default STDOUT
+      Output CSV filename; default STDOUT
   -pattern string
-    	Search pattern
+      Search pattern
   -re
-    	Search pattern is a regular expression
+      Search pattern is a regular expression
 
 ```
 
