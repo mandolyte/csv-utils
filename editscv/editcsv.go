@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"regexp"
-	"strings"
 
 	"github.com/mandolyte/rangespec"
 )
@@ -18,13 +17,14 @@ var re *regexp.Regexp
 
 func main() {
 	pattern := flag.String("pattern", "", "Search pattern")
+	replace := flag.String("replace", "", "Regexp replace expression")
 	cols := flag.String("c", "", "Range spec for columns")
 	input := flag.String("i", "", "Input CSV filename; default STDIN")
 	output := flag.String("o", "", "Output CSV filename; default STDOUT")
 	headers := flag.Bool("headers", true, "CSV has headers")
 	keep := flag.Bool("keep", true, "Keep CSV headers on output")
-	regex := flag.Bool("re", false, "Search pattern is a regular expression")
 	help := flag.Bool("help", false, "Show help message")
+	//add := flag.Bool("add",false,"Add replace string as a new column; default, replace in-place")
 	flag.Parse()
 
 	if *help {
@@ -33,14 +33,16 @@ func main() {
 	}
 
 	/* check parameters */
-	if *pattern == "" {
-		usage("Required: Missing pattern for search")
+	if *replace == "" {
+		usage("Required: Missing replace expression")
 		os.Exit(0)
 	}
 
-	if *regex {
-		re = regexp.MustCompile(*pattern)
+	if *pattern == "" {
+		usage("Required: Missing search expression")
+		os.Exit(0)
 	}
+	re = regexp.MustCompile(*pattern)
 
 	if *cols != "" {
 		var cserr error
@@ -105,43 +107,29 @@ func main() {
 		}
 		row++
 		// test row/columns for a match
-		if patternMatches(cells, *pattern) {
-			err := w.Write(cells)
-			if err != nil {
-				log.Fatalf("csv.Write:\n%v\n", err)
-			}
+		err := w.Write(patternMatches(cells, re, *replace))
+		if err != nil {
+			log.Fatalf("csv.Write:\n%v\n", err)
 		}
 	}
 	w.Flush()
 }
 
-func patternMatches(c []string, pattern string) bool {
-	found := false
-	for n, v := range c {
+func patternMatches(c []string, re *regexp.Regexp, replace string) []string {
+	for n := range c {
 		if cs == nil {
-			if re == nil {
-				found = strings.Contains(v, pattern)
-			} else {
-				found = re.MatchString(v)
-			}
+			c[n] = re.ReplaceAllString(c[n],replace)
 		} else {
 			if cs.InRange(uint64(n + 1)) {
-				if re == nil {
-					found = strings.Contains(v, pattern)
-				} else {
-					found = re.MatchString(v)
-				}
+				c[n] = re.ReplaceAllString(c[n],replace)
 			}
 		}
-		if found {
-			return true
-		}
 	}
-	return false
+	return c
 }
 
 func usage(msg string) {
 	fmt.Println(msg + "\n")
-	fmt.Print("Usage: searchcsv [options] input.csv output.csv\n")
+	fmt.Print("Usage: editcsv [options] input.csv output.csv\n")
 	flag.PrintDefaults()
 }
