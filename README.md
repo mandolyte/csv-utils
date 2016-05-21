@@ -1,8 +1,5 @@
 # csv-utils
-Split (rows and columns), sort, and search
-
-## To do
-Plan to make a "editcsv" which will apply a Regex Replace.
+Split (rows and columns), sort, search, and edit CSV files
 
 ## Splitcsv
 Use the -help argument to show:
@@ -91,27 +88,27 @@ $
 Use the -help argument to show:
 
 ```
-$ go run searchcsv.go -help
+$ searchcsv -help
 Help Message
 
-Usage: searchcsv [options] input.csv output.csv
+Usage: searchcsv [options]
   -c string
-      Range spec for columns
+    	Range spec for columns
   -headers
-      CSV has headers (default true)
+    	CSV has headers (default true)
   -help
-      Show help message
+    	Show help message
   -i string
-      Input CSV filename; default STDIN
+    	Input CSV filename; default STDIN
   -keep
-      Keep CSV headers on output (default true)
+    	Keep CSV headers on output (default true)
   -o string
-      Output CSV filename; default STDOUT
+    	Output CSV filename; default STDOUT
   -pattern string
-      Search pattern
+    	Search pattern
   -re
-      Search pattern is a regular expression
-
+    	Search pattern is a regular expression
+  -v	Omit rather than include matched rows
 ```
 Examples:
 ```
@@ -141,26 +138,30 @@ go,abacus,Marine
 ## Editcsv
 Use -help to show:
 ```
-$ go run editcsv.go -help
+$ editcsv -help
 Help Message
 
 Usage: editcsv [options] input.csv output.csv
+  -add
+    	Add replace string as a new column; default, replace in-place
+  -addHeader string
+    	Header to use for added column (default "ADDED")
   -c string
-      Range spec for columns
+    	Range spec for columns
   -headers
-      CSV has headers (default true)
+    	CSV has headers (default true)
   -help
-      Show help message
+    	Show help message
   -i string
-      Input CSV filename; default STDIN
+    	Input CSV filename; default STDIN
   -keep
-      Keep CSV headers on output (default true)
+    	Keep CSV headers on output (default true)
   -o string
-      Output CSV filename; default STDOUT
+    	Output CSV filename; default STDOUT
   -pattern string
-      Search pattern
+    	Search pattern
   -replace string
-      Regexp replace expression
+    	Regexp replace expression
 ```
 Examples:
 ```
@@ -182,4 +183,12 @@ abc,def,--elided--
 one,two,--elided--
 go,abacus,Marine
 Android,Ubuntu,Linux
+
+$ editcsv -pattern "^.*y$" -replace "--elided--" -c 3 \
+> -add=true -addHeader "final" < test1.csv
+A,B,C,final
+abc,def,Army,--elided--
+one,two,Navy,--elided--
+go,abacus,Marine,Marine
+Android,Ubuntu,Linux,Linux
 ```
