@@ -15,8 +15,8 @@ var rs *rangespec.RangeSpec
 var cs *rangespec.RangeSpec
 
 func main() {
-	rows := flag.String("r", "", "Range spec for rows")
-	cols := flag.String("c", "", "Range spec for columns")
+	rows := flag.String("r", "1-", "Range spec for rows")
+	cols := flag.String("c", "1-", "Range spec for columns")
 	input := flag.String("i", "", "Input CSV filename; default STDIN")
 	output := flag.String("o", "", "Output CSV filename; default STDOUT")
 	headers := flag.Bool("headers", true, "CSV has headers")

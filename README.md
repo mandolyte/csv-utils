@@ -6,8 +6,10 @@ Plan to make a "editcsv" which will apply a Regex Replace.
 
 ## Splitcsv
 Use the -help argument to show:
-
 ```
+$ go run splitcsv.go -help
+Help Message
+
 Usage: splitcsv [options] input.csv output.csv
   -c string
     	Range spec for columns
@@ -23,7 +25,23 @@ Usage: splitcsv [options] input.csv output.csv
     	Output CSV filename; default STDOUT
   -r string
     	Range spec for rows
-
+$ cat test1.csv
+A,B,C,D,E,F,G,H,I
+1,1,1,1,1,1,1,1,1
+2,2,2,2,2,2,2,2,2
+3,3,3,3,3,3,3,3,3
+4,4,4,4,4,4,4,4,4
+5,5,5,5,5,5,5,5,5
+6,6,6,6,6,6,6,6,6
+7,7,7,7,7,7,7,7,7
+8,8,8,8,8,8,8,8,8
+9,9,9,9,9,9,9,9,9
+$ go run splitcsv.go -c 4-6 -r 4-6 < test1.csv
+D,E,F
+4,4,4
+5,5,5
+6,6,6
+$
 ```
 
 ## Sortcsv
@@ -59,6 +77,15 @@ A default rule is required. If the default
 mapping is also an asterisk, then the original
 value is used.
 ```
+Example:
+```
+$ splitcsv -c 4-6 -r 4-6 < test1.csv | sortcsv -a=false -c 2
+D,E,F
+6,6,6
+5,5,5
+4,4,4
+$
+```
 
 ## Searchcsv
 Use the -help argument to show:
@@ -86,9 +113,30 @@ Usage: searchcsv [options] input.csv output.csv
       Search pattern is a regular expression
 
 ```
-
+Examples:
+```
+$ cat test1.csv
+A,B,C
+abc,def,Army
+one,two,Navy
+go,abacus,Marine
+Android,Ubuntu,Linux
+$ searchcsv -c 1 -pattern "y$" < test1.csv
+A,B,C
+$ searchcsv -c 3 -pattern "y$" < test1.csv
+A,B,C
+$ searchcsv -c 3 -pattern "y$" -re=true < test1.csv
+A,B,C
+abc,def,Army
+one,two,Navy
+$ searchcsv -c 3 -pattern "[mu][xy]$" -re=true < test1.csv
+A,B,C
+abc,def,Army
+Android,Ubuntu,Linux
+```
 ## Editcsv
 Use -help to show:
+```
 $ go run editcsv.go -help
 Help Message
 
@@ -110,21 +158,21 @@ Usage: editcsv [options] input.csv output.csv
   -replace string
       Regexp replace expression
 ```
-Example:
+Examples:
 ```
-$ cat test1.csv 
+$ cat test1.csv
 A,B,C
 abc,def,Army
 one,two,Navy
 go,abacus,Marine
 Android,Ubuntu,Linux
-$ go run editcsv.go -pattern "^(a)" -replace "x-$1" < test1.csv 
+$ go run editcsv.go -pattern "^(a)" -replace "x-$1" < test1.csv
 A,B,C
 x-bc,def,Army
 one,two,Navy
 go,x-bacus,Marine
 Android,Ubuntu,Linux
-$ go run editcsv.go -pattern "^.*y$" -replace "--elided--" < test1.csv 
+$ go run editcsv.go -pattern "^.*y$" -replace "--elided--" < test1.csv
 A,B,C
 abc,def,--elided--
 one,two,--elided--
