@@ -18,13 +18,14 @@ var re *regexp.Regexp
 func main() {
 	pattern := flag.String("pattern", "", "Search pattern")
 	replace := flag.String("replace", "", "Regexp replace expression")
+	addHdr := flag.String("addHeader", "ADDED", "Header to use for added column")
 	cols := flag.String("c", "", "Range spec for columns")
 	input := flag.String("i", "", "Input CSV filename; default STDIN")
 	output := flag.String("o", "", "Output CSV filename; default STDOUT")
 	headers := flag.Bool("headers", true, "CSV has headers")
 	keep := flag.Bool("keep", true, "Keep CSV headers on output")
 	help := flag.Bool("help", false, "Show help message")
-	//add := flag.Bool("add",false,"Add replace string as a new column; default, replace in-place")
+	add := flag.Bool("add", false, "Add replace string as a new column; default, replace in-place")
 	flag.Parse()
 
 	if *help {
@@ -99,6 +100,9 @@ func main() {
 		}
 		if (row == 0) && *headers && *keep {
 			row = 1
+			if *add {
+				cells = append(cells, *addHdr)
+			}
 			err := w.Write(cells)
 			if err != nil {
 				log.Fatalf("csv.Write:\n%v\n", err)
@@ -107,7 +111,7 @@ func main() {
 		}
 		row++
 		// test row/columns for a match
-		err := w.Write(patternMatches(cells, re, *replace))
+		err := w.Write(patternMatches(cells, re, *replace, *add))
 		if err != nil {
 			log.Fatalf("csv.Write:\n%v\n", err)
 		}
@@ -115,13 +119,23 @@ func main() {
 	w.Flush()
 }
 
-func patternMatches(c []string, re *regexp.Regexp, replace string) []string {
+func patternMatches(c []string, re *regexp.Regexp, replace string, add bool) []string {
 	for n := range c {
 		if cs == nil {
-			c[n] = re.ReplaceAllString(c[n],replace)
+			newstring := re.ReplaceAllString(c[n], replace)
+			if add {
+				c = append(c, newstring)
+			} else {
+				c[n] = newstring
+			}
 		} else {
 			if cs.InRange(uint64(n + 1)) {
-				c[n] = re.ReplaceAllString(c[n],replace)
+				newstring := re.ReplaceAllString(c[n], replace)
+				if add {
+					c = append(c, newstring)
+				} else {
+					c[n] = newstring
+				}
 			}
 		}
 	}

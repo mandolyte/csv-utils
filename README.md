@@ -133,6 +133,10 @@ $ searchcsv -c 3 -pattern "[mu][xy]$" -re=true < test1.csv
 A,B,C
 abc,def,Army
 Android,Ubuntu,Linux
+$ searchcsv -v -c 3 -pattern "[mu][xy]$" -re=true < test1.csv
+A,B,C
+one,two,Navy
+go,abacus,Marine
 ```
 ## Editcsv
 Use -help to show:

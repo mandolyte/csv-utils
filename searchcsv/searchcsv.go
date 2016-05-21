@@ -18,6 +18,7 @@ var re *regexp.Regexp
 
 func main() {
 	pattern := flag.String("pattern", "", "Search pattern")
+	suppress := flag.Bool("v", false, "Omit rather than include matched rows")
 	cols := flag.String("c", "", "Range spec for columns")
 	input := flag.String("i", "", "Input CSV filename; default STDIN")
 	output := flag.String("o", "", "Output CSV filename; default STDOUT")
@@ -105,7 +106,7 @@ func main() {
 		}
 		row++
 		// test row/columns for a match
-		if patternMatches(cells, *pattern) {
+		if patternMatches(cells, *pattern, *suppress) {
 			err := w.Write(cells)
 			if err != nil {
 				log.Fatalf("csv.Write:\n%v\n", err)
@@ -115,7 +116,7 @@ func main() {
 	w.Flush()
 }
 
-func patternMatches(c []string, pattern string) bool {
+func patternMatches(c []string, pattern string, suppress bool) bool {
 	found := false
 	for n, v := range c {
 		if cs == nil {
@@ -134,14 +135,20 @@ func patternMatches(c []string, pattern string) bool {
 			}
 		}
 		if found {
+			if suppress {
+				return false
+			}
 			return true
 		}
+	}
+	if suppress {
+		return true
 	}
 	return false
 }
 
 func usage(msg string) {
 	fmt.Println(msg + "\n")
-	fmt.Print("Usage: searchcsv [options] input.csv output.csv\n")
+	fmt.Print("Usage: searchcsv [options]\n")
 	flag.PrintDefaults()
 }
