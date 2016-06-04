@@ -1,0 +1,13 @@
+A,B,C,D,E,F
+a1,b1,c1,d1,X,1
+a2,b2,c2,d2,X,3
+a1,b1,c1,d1,X,3
+a2,b2,c2,d2,X,3
+a1,b1,c1,d1,Y,2
+a2,b2,c2,d2,Y,4
+a1,b1,c1,d1,Y,4
+a2,b2,c2,d2,Y,4
+a1,b1,c1,d1,Z,3
+a2,b2,c2,d2,Z,5
+a1,b1,c1,d1,Z,5
+a2,b2,c2,d2,Z,5

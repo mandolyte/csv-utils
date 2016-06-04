@@ -1,21 +1,21 @@
 package main
 
 import (
+	"bytes"
 	"encoding/csv"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"sort"
+	"strconv"
+	"strings"
 )
 
-var m map[string]interface{}
-var hasMap bool
-
 type table struct {
-	records   [][]string
-	ascending bool
-	column    int
+	records                 [][]string
+	pivotcol, pivotcolcount int
 }
 
 func (t *table) Len() int {
@@ -27,42 +27,15 @@ func (t *table) Swap(i, j int) {
 }
 
 func (t *table) Less(i, j int) bool {
-	if hasMap {
-		ival, iok := m[t.records[i][t.column]]
-		if !iok {
-			ival, iok = m["*"]
-			if !iok {
-				ival = t.records[i][t.column]
-			}
+	for n := range t.records[i] {
+		if n >= t.pivotcol && n < (t.pivotcol+t.pivotcolcount) {
+			continue
 		}
-		jval, jok := m[t.records[j][t.column]]
-		if !jok {
-			jval, jok = m["*"]
-			if !jok {
-				jval = t.records[j][t.column]
-			}
+		if t.records[i][n] < t.records[j][n] {
+			return true
 		}
-		var isless bool
-		switch t := ival.(type) {
-		case float64:
-			isless = ival.(float64) < jval.(float64)
-			//log.Printf("Comparing float64 %v %v", ival, jval)
-		case string:
-			isless = ival.(string) < jval.(string)
-			//log.Printf("Comparing STRING %v %v", ival, jval)
-		default:
-			log.Fatalf("Unsupported type:%T\n", t)
-		}
-		if t.ascending {
-			return isless
-		}
-		return !isless
 	}
-	isless := t.records[i][t.column] < t.records[j][t.column]
-	if t.ascending {
-		return isless
-	}
-	return !isless
+	return false
 }
 
 func main() {
@@ -72,31 +45,40 @@ func main() {
 	pivotout := flag.String("o", "", "CSV output file name; default STDOUT")
 	headers := flag.Bool("headers", true, "CSV must have headers; cannot be false")
 	help := flag.Bool("help", false, "Show help message")
+	novalue := flag.String("nv", "", "String to signal novalue; default is empty string")
+	numformat := flag.String("nf", "%v", "Format to use for numbers")
+	onlynum := flag.Bool("on", true, "Only consider numeric data and sum them")
+	onlystr := flag.Bool("os", false, "Consider data as strings and concatenate")
+	strdlm := flag.String("sd", ",", "Concatenation delimiter; default is comma")
 	flag.Parse()
 
 	if *help {
-		usage()
+		usage("")
 		os.Exit(0)
 	}
 
 	if len(flag.Args()) > 0 {
-		usage()
+		usage("Arguments provided when none expected")
 		os.Exit(1)
 	}
 
 	if *pivotcol == 0 {
-		usage()
-		os.Exit(1)
+		usage("Pivot column number must greater than zero")
+		os.Exit(0)
 	}
 
 	if *pivotsum == 0 {
-		usage()
-		os.Exit(1)
+		usage("Pivot sum column number must greater than zero")
+		os.Exit(0)
 	}
 
 	if !*headers {
-		usage()
-		os.Exit(1)
+		usage("Headers are required; add them before using")
+		os.Exit(0)
+	}
+
+	if *onlystr {
+		*onlynum = false
 	}
 
 	// open output file
@@ -147,7 +129,7 @@ func main() {
 		}
 		pivotHdrs[csvall[n][*pivotcol-1]]++
 	}
-	log.Printf("Number of pivot headers:%v", len(pivotHdrs))
+	//log.Printf("Number of pivot headers:%v", len(pivotHdrs))
 
 	// sort the new pivot headers
 	var phkeys []string
@@ -192,14 +174,171 @@ func main() {
 	// }
 	// the slice would be one per pivot column header value
 	// or maybe a map also with header value as key and struct as value
+	type sumconcat struct {
+		sumnum float64
+		sumstr []string
+		ncount uint64
+	}
+	pivot := make(map[string](map[string]*sumconcat))
+	for _, v := range csvall[1:] {
+		//
+		// step 1. create the []string for the key
+		//
+		var tmp []string
+		for x, y := range v {
+			// skip the pivot and sum columns
+			if x+1 == *pivotcol {
+				continue
+			}
+			if x+1 == *pivotsum {
+				continue
+			}
+			tmp = append(tmp, y)
+		}
+		//
+		// step 2. let CSV package create the key
+		//
+		var b bytes.Buffer
+		w2 := csv.NewWriter(&b)
+		err := w2.Write(tmp)
+		w2.Flush()
+		if err != nil {
+			log.Fatal("w2.Write() Error:" + err.Error())
+		}
+		skey := b.String()
 
-	werr := w.WriteAll(orecs)
+		// step 3. update key value
+		mapsc, ok := pivot[skey]
+		//fmt.Printf("Summing:%v\n", v[*pivotsum-1])
+		//fmt.Printf("Pivot col value is:%v\n", v[*pivotcol-1])
+		if ok {
+			// if key exists already in the pivot map
+			// update the values and continue
+			// try to convert pivotsum column value to a float64
+			/*
+				fmt.Print("Working on map:\n")
+
+				for debugk, debugv := range mapsc {
+					fmt.Printf("Key: %v -- Val: %v\n", debugk, debugv)
+				}
+			*/
+			if *onlynum {
+				if f, err := strconv.ParseFloat(v[*pivotsum-1], 64); err == nil {
+					tmpsc, ok := mapsc[v[*pivotcol-1]]
+					if ok {
+						mapsc[v[*pivotcol-1]].sumnum += f
+						mapsc[v[*pivotcol-1]].ncount++
+					} else {
+						tmpsc = new(sumconcat)
+						tmpsc.sumnum = f
+						tmpsc.ncount++
+						mapsc[v[*pivotcol-1]] = tmpsc
+					}
+				}
+			} else {
+				tmpsc, ok := mapsc[v[*pivotcol-1]]
+				if ok {
+					mapsc[v[*pivotcol-1]].sumstr =
+						append(mapsc[v[*pivotcol-1]].sumstr, v[*pivotsum-1])
+				} else {
+					tmpsc = new(sumconcat)
+					tmpsc.sumstr = append(tmpsc.sumstr, v[*pivotsum-1])
+					mapsc[v[*pivotcol-1]] = tmpsc
+				}
+			}
+		} else {
+			//
+			// step 3b. fill out the struct val for map
+			//
+			sc := new(sumconcat)
+			if *onlynum {
+				if f, err := strconv.ParseFloat(v[*pivotsum-1], 64); err == nil {
+					sc.sumnum = f
+				}
+			} else {
+				sc.sumstr = append(sc.sumstr, v[*pivotsum-1])
+			}
+			tmpmap := make(map[string]*sumconcat)
+			tmpmap[v[*pivotcol-1]] = sc
+			pivot[skey] = tmpmap
+		}
+
+	}
+	csvall = nil
+	// now create the output table
+	for k, v := range pivot {
+		// untangle the CSV formatted key using CSV package
+		//fmt.Printf("Pivot Key is /%v/\n", k)
+		b := bytes.NewBufferString(k)
+		r := csv.NewReader(b)
+		row, rerr := r.Read()
+		if rerr != nil {
+			if rerr != io.EOF {
+				log.Fatal("r.Read Error:" + rerr.Error())
+			}
+		}
+		// append to a new row, inserting pivot columns in correct spot
+		var newrow []string
+		for i := 0; i < *pivotcol-1; i++ {
+			if i == (*pivotsum - 1) {
+				continue
+			}
+			newrow = append(newrow, row[i])
+		}
+		// now for the pivot columns
+		// use the sorted slice to pick them in sorted order
+		for _, vsc := range phkeys {
+			//fmt.Printf("phkey is /%v/\n", vsc)
+			sc, ok := v[vsc]
+			if ok {
+				//fmt.Printf("Found v[vsc] /%v/\n", sc)
+				if *onlynum {
+					if sc.ncount == 0 {
+						newrow = append(newrow, *novalue)
+					} else {
+						newrow = append(newrow, fmt.Sprintf(*numformat, sc.sumnum))
+					}
+				} else {
+					newrow = append(newrow, strings.Join(sc.sumstr, *strdlm))
+				}
+			} else {
+				//fmt.Printf("NOT Found v[vsc] /%v/\n", sc)
+				// nothing for this header key - put out empty strings
+				newrow = append(newrow, *novalue)
+			}
+		}
+		// now append the rest of the columns after *pivotcol
+		for i := *pivotcol; i < len(row); i++ {
+			if i == (*pivotsum - 1) {
+				continue
+			}
+			newrow = append(newrow, row[i])
+		}
+
+		// append row to orecs table
+		orecs = append(orecs, newrow)
+	}
+
+	// write out the header row
+	werr := w.Write(orecs[0])
+	if werr != nil {
+		log.Fatal("w.Write() Error:" + werr.Error())
+	}
+
+	// now, let's sort the table
+	tbl := &table{records: orecs[1:], pivotcol: *pivotcol - 1, pivotcolcount: len(phkeys)}
+
+	sort.Sort(tbl)
+
+	werr = w.WriteAll(tbl.records)
 	if werr != nil {
 		log.Fatal("w.WriteAll() Error:" + werr.Error())
 	}
 }
 
-func usage() {
+func usage(msg string) {
+	if msg != "" {
+		fmt.Println(msg)
+	}
 	flag.PrintDefaults()
-	fmt.Println("tbd... other usage notes")
 }
