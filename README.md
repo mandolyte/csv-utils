@@ -1,5 +1,5 @@
 # csv-utils
-Split (rows and columns), sort, search, and edit CSV files
+Split (rows and columns), sort, search, edit, and pivot CSV files
 
 ## Splitcsv
 Use the -help argument to show:
