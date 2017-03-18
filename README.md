@@ -1,6 +1,10 @@
 # csv-utils
 Split (rows and columns), sort, search, edit, pivot, and obfuscate CSV files
 
+There is also a recursion utility which given a CSV file as
+a "database" and a starting value will output a hierarchy.
+See below for details and limitations.
+
 ## Splitcsv
 Use the -help argument to show:
 ```
@@ -368,5 +372,64 @@ XT21,XT20,DOD3-2
 XT40,XT20,DOD3-2
 XT50,XT21,DOD2-2
 XT20,XT20,DOD6-2
+$
+```
+
+## Recursecsv
+*Notes*
+1. It will always output the normal hierarchical columns in this order: level, parent, child, path, and cycle (a Yes/No)
+2. Note defaults shown in the help message below
+3. At present it can only take two columns of data, the parent and child columns. If these have other associated values, they will have to be added back in to this output.
+
+*To Do*
+I plan to address the limitation in note 3 above by allowing the attributes associated to the parent and child to be specified. However, this is not a perfect fix, since it is possible for a child to have different values depending on the parent. For example, think of a "bolt" child. The number of bolts used in a parent assembly will vary depending on where it is used. Thus quantity is context dependent and would be lost in the planned fix. At present, I am not sure how to address this problem satisfactorily given the method used in this simple program.
+
+Use -help to show:
+```
+$ recursecsv -help
+Help Message
+
+  -child int
+    	Child column; default 2 (default 2)
+  -delimiter string
+    	String for path delimiter (default ">")
+  -help
+    	Show usage message
+  -i string
+    	Input CSV filename; default STDIN
+  -o string
+    	Output CSV filename; default STDOUT
+  -parent int
+    	Parent column; default 1 (default 1)
+  -start string
+    	Start value of hierarchy
+```
+
+Example:
+```
+$ cat test1.csv
+parent,child
+A,X
+A,B
+B,C
+D,E
+C,D
+X,Y
+Y,B
+E,C
+$ recursecsv -i test1.csv -start A
+Level,parent,child,Path,Cycle
+1,A,B,>A>B,No
+2,B,C,>A>B>C,No
+3,C,D,>A>B>C>D,No
+4,D,E,>A>B>C>D>E,No
+5,E,C,>A>B>C>D>E>C,Yes
+1,A,X,>A>X,No
+2,X,Y,>A>X>Y,No
+3,Y,B,>A>X>Y>B,No
+4,B,C,>A>X>Y>B>C,No
+5,C,D,>A>X>Y>B>C>D,No
+6,D,E,>A>X>Y>B>C>D>E,No
+7,E,C,>A>X>Y>B>C>D>E>C,Yes
 $
 ```
