@@ -377,12 +377,16 @@ $
 
 ## Recursecsv
 *Notes*
-1. It will always output the normal hierarchical columns in this order: level, parent, child, path, and cycle (a Yes/No)
+1. It will always output the normal hierarchical columns in this order: level, root, parent, child, path, and cycle (a Yes/No)
 2. Note defaults shown in the help message below
 3. At present it can only take two columns of data, the parent and child columns. If these have other associated values, they will have to be added back in to this output.
+4. The input must have column headers, since they are re-used in the output CSV.
 
 *To Do*
-I plan to address the limitation in note 3 above by allowing the attributes associated to the parent and child to be specified. However, this is not a perfect fix, since it is possible for a child to have different values depending on the parent. For example, think of a "bolt" child. The number of bolts used in a parent assembly will vary depending on where it is used. Thus quantity is context dependent and would be lost in the planned fix. At present, I am not sure how to address this problem satisfactorily given the method used in this simple program.
+- [done] Add support for the equivalent to Oracle's connect_by_root
+- I plan to address the limitation in note 3 above by allowing the attributes associated to the parent and child to be specified. However, this is not a perfect fix, since it is possible for a child to have different values depending on the parent. For example, think of a "bolt" child. The number of bolts used in a parent assembly will vary depending on where it is used. Thus quantity is context dependent and would be lost in the planned fix. At present, I am not sure how to address this problem satisfactorily given the method used in this simple program.
+- [done] Make headers optional and just defaults for output headers; probably "parent" and "child"
+- [done] Add support for a list of start values from a text file. This way, once the data is loaded into memory, all hierarchies can be done in one session.
 
 Use -help to show:
 ```

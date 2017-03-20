@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/csv"
 	"flag"
 	"fmt"
@@ -15,10 +16,11 @@ var w *csv.Writer
 
 var parent = flag.Int("parent", 1, "Parent column; default 1")
 var child = flag.Int("child", 2, "Child column; default 2")
-var start = flag.String("start", "", "Start value of hierarchy")
+var start = flag.String("start", "", "Start value of hierarchy;\nif first letter is ampersand, use as a file with a list of values to process")
 var delimiter = flag.String("delimiter", ">", "String for path delimiter")
 var input = flag.String("i", "", "Input CSV filename; default STDIN")
 var output = flag.String("o", "", "Output CSV filename; default STDOUT")
+var headers = flag.Bool("headers", true, "Input CSV has headers")
 var help = flag.Bool("help", false, "Show usage message")
 
 func main() {
@@ -26,6 +28,25 @@ func main() {
 
 	if *help {
 		usage("Help Message")
+	}
+
+	if *start == "" {
+		usage("Start value is missing")
+	}
+
+	var startvals []string
+	if strings.HasPrefix(*start, "@") {
+		f, ferr := os.Open((*start)[1:])
+		if ferr != nil {
+			log.Fatalf("os.Open() error on %v\n:%v", (*start)[1:], ferr)
+		}
+		defer f.Close()
+		scanner := bufio.NewScanner(f)
+		for scanner.Scan() {
+			startvals = append(startvals, scanner.Text())
+		}
+	} else {
+		startvals = append(startvals, *start)
 	}
 
 	// open output file
@@ -71,10 +92,16 @@ func main() {
 			log.Fatalf("csv.Read [row %v]:\n%v\n", row, rerr)
 		}
 		if row == 0 {
-			recurseHeaders[1] = cells[pcol]
-			recurseHeaders[2] = cells[ccol]
+			if *headers == false {
+				recurseHeaders[2] = "Parent"
+				recurseHeaders[3] = "Child"
+			} else {
+				recurseHeaders[2] = cells[pcol]
+				recurseHeaders[3] = cells[ccol]
+			}
 			writeRow(recurseHeaders[0], recurseHeaders[1],
-				recurseHeaders[2], recurseHeaders[3], recurseHeaders[4])
+				recurseHeaders[2], recurseHeaders[3],
+				recurseHeaders[4], recurseHeaders[5])
 			row++
 			continue
 		}
@@ -88,12 +115,14 @@ func main() {
 		row++
 	}
 
-	recurse(0, *start, *delimiter+*start, parents)
+	for _, v := range startvals {
+		recurse(0, v, v, *delimiter+v, parents)
+	}
 
 	w.Flush()
 }
 
-func recurse(level int, start, path string, parents map[string][]string) {
+func recurse(level int, root, start, path string, parents map[string][]string) {
 	// get value from map for start node
 	v, ok := parents[start]
 	if !ok {
@@ -112,17 +141,18 @@ func recurse(level int, start, path string, parents map[string][]string) {
 		}
 		sLevel := fmt.Sprintf("%v", level)
 		sPath := path + *delimiter + child
-		writeRow(sLevel, start, child, sPath, cycle)
+		writeRow(sLevel, root, start, child, sPath, cycle)
 		if cycle == "No" {
-			recurse(level, child, sPath, parents)
+			recurse(level, root, child, sPath, parents)
 		}
 	}
 
 }
 
-func writeRow(level, parent, child, path, cycle string) {
+func writeRow(level, root, parent, child, path, cycle string) {
 	var cells []string
 	cells = append(cells, level)
+	cells = append(cells, root)
 	cells = append(cells, parent)
 	cells = append(cells, child)
 	cells = append(cells, path)
@@ -145,5 +175,5 @@ var recurseHeaders []string
 
 func init() {
 	recurseHeaders = append(recurseHeaders,
-		"Level", "", "", "Path", "Cycle")
+		"Level", "Root", "", "", "Path", "Cycle")
 }
