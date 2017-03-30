@@ -1,5 +1,9 @@
 # csv-utils
-Split (rows and columns), sort, search, edit, pivot, and obfuscate CSV files
+Split (rows and columns), sort, search, edit, pivot, and obfuscate CSV files.
+
+*New*
+- catcsv: concatenate multiple CSV files 
+- uniqcsv: remove duplicate rows
 
 There is also a recursion utility which given a CSV file as
 a "database" and a starting value will output a hierarchy.
@@ -435,5 +439,60 @@ Level,parent,child,Path,Cycle
 5,C,D,>A>X>Y>B>C>D,No
 6,D,E,>A>X>Y>B>C>D>E,No
 7,E,C,>A>X>Y>B>C>D>E>C,Yes
+$
+```
+
+## Catcsv
+Use -help to show:
+```
+$ catcsv -help
+Help Message
+
+Usage: catcsv [options] input1.csv input2.csv ...
+  -f    Force concatenation of different width CSV files
+  -headers
+        CSV has headers (default true)
+  -help
+        Show usage message
+  -keep
+        Keep CSV headers on output (default true)
+  -o string
+        Output CSV filename; default STDOUT
+```
+
+## Uniqcsv 
+Use -help to show:
+```
+$ uniqcsv -help
+Help Message
+
+Usage: uniqcsv [options]
+NOTE: must be sorted; only compares row against prior row.  -headers
+        CSV has headers (default true)
+  -help
+        Show help message
+  -i string
+        Input CSV filename; default STDIN
+  -keep
+        Keep CSV headers on output (default true)
+  -o string
+        Output CSV filename; default STDOUT
+```
+
+For example:
+```
+$ cat test1.csv
+A,B,C
+1,2,3
+1,2,3
+4,5,6
+d,e,f
+d,e,f
+d,e,f
+$ uniqcsv < test1.csv
+A,B,C
+1,2,3
+4,5,6
+d,e,f
 $
 ```

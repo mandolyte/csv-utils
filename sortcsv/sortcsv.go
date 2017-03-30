@@ -152,7 +152,8 @@ func main() {
 
 	t := &table{records: csvall, ascending: *sortasc, column: *sortcol}
 
-	sort.Sort(t)
+	//sort.Sort(t)
+	sort.Stable(t)
 	werr := w.WriteAll(t.records)
 	if werr != nil {
 		log.Fatal("w.WriteAll() Error:" + werr.Error())
