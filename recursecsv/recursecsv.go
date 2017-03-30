@@ -10,6 +10,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 )
 
 var w *csv.Writer
@@ -22,6 +23,7 @@ var input = flag.String("i", "", "Input CSV filename; default STDIN")
 var output = flag.String("o", "", "Output CSV filename; default STDOUT")
 var headers = flag.Bool("headers", true, "Input CSV has headers")
 var help = flag.Bool("help", false, "Show usage message")
+var info = flag.Bool("info", true, "Show info messages during processing")
 
 func main() {
 	flag.Parse()
@@ -33,6 +35,8 @@ func main() {
 	if *start == "" {
 		usage("Start value is missing")
 	}
+	now := time.Now().UTC()
+	display(fmt.Sprintf("Start at %v", now))
 
 	var startvals []string
 	if strings.HasPrefix(*start, "@") {
@@ -101,7 +105,7 @@ func main() {
 			}
 			writeRow(recurseHeaders[0], recurseHeaders[1],
 				recurseHeaders[2], recurseHeaders[3],
-				recurseHeaders[4], recurseHeaders[5])
+				recurseHeaders[4], recurseHeaders[5], recurseHeaders[6])
 			row++
 			continue
 		}
@@ -115,21 +119,29 @@ func main() {
 		row++
 	}
 
+	display("Data loaded and ready to start recursing")
 	for _, v := range startvals {
+		begin := time.Now().UTC()
+		display(fmt.Sprintf("Working on %v", v))
 		recurse(0, v, v, *delimiter+v, parents)
+		display(fmt.Sprintf(". elasped %v", time.Since(begin)))
 	}
-
+	stop := time.Now().UTC()
+	elapsed := time.Since(now)
+	display(fmt.Sprintf("End at %v", stop))
+	display(fmt.Sprintf("Elapsed time %v", elapsed))
 	w.Flush()
 }
 
 func recurse(level int, root, start, path string, parents map[string][]string) {
 	// get value from map for start node
-	v, ok := parents[start]
-	if !ok {
-		return // at a leaf node
-	}
+	//v, ok := parents[start]
+	//if !ok {
+	//	return // at a leaf node
+	//}
 
 	// sort the children
+	v := parents[start]
 	sort.Strings(v)
 
 	level++ // increment depth
@@ -141,21 +153,27 @@ func recurse(level int, root, start, path string, parents map[string][]string) {
 		}
 		sLevel := fmt.Sprintf("%v", level)
 		sPath := path + *delimiter + child
-		writeRow(sLevel, root, start, child, sPath, cycle)
-		if cycle == "No" {
+		leaf := "Yes"
+		_, ok := parents[child]
+		if ok {
+			leaf = "No"
+		}
+		writeRow(sLevel, root, start, child, sPath, leaf, cycle)
+		if cycle == "No" && ok {
 			recurse(level, root, child, sPath, parents)
 		}
 	}
 
 }
 
-func writeRow(level, root, parent, child, path, cycle string) {
+func writeRow(level, root, parent, child, path, leaf, cycle string) {
 	var cells []string
 	cells = append(cells, level)
 	cells = append(cells, root)
 	cells = append(cells, parent)
 	cells = append(cells, child)
 	cells = append(cells, path)
+	cells = append(cells, leaf)
 	cells = append(cells, cycle)
 
 	err := w.Write(cells)
@@ -171,9 +189,15 @@ func usage(msg string) {
 	os.Exit(0)
 }
 
+func display(msg string) {
+	if *info {
+		log.Print(msg + "\n")
+	}
+}
+
 var recurseHeaders []string
 
 func init() {
 	recurseHeaders = append(recurseHeaders,
-		"Level", "Root", "", "", "Path", "Cycle")
+		"Level", "Root", "", "", "Path", "Leaf", "Cycle")
 }

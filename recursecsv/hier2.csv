@@ -1,0 +1,5 @@
+Level,Root,parent,child,Path,Leaf,Cycle
+1,A,A,B,>A>B,No,No
+2,A,B,C,>A>B>C,No,No
+3,A,C,D,>A>B>C>D,No,No
+4,A,D,E,>A>B>C>D>E,Yes,No
