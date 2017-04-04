@@ -81,6 +81,7 @@ func main() {
 
 	// ignore expectations of fields per row
 	r.FieldsPerRecord = -1
+	r.LazyQuotes = true
 
 	// read loop for CSV
 	var row uint64
