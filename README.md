@@ -529,6 +529,7 @@ Inserted 7969122 rows
 $
 ```
 *Note 1.* The above was an actual run and shows a rate of almost 200K rows/second.
+
 *Note 2.* I recommend just using the TEXT datatype for all columns and correcting to actual datatypes after load into database. This is because of this issue with handling null values for dates (and perhaps other types): https://github.com/lib/pq/issues/591
 
 
