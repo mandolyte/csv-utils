@@ -105,7 +105,8 @@ func main() {
 			}
 			writeRow(recurseHeaders[0], recurseHeaders[1],
 				recurseHeaders[2], recurseHeaders[3],
-				recurseHeaders[4], recurseHeaders[5], recurseHeaders[6])
+				recurseHeaders[4], recurseHeaders[5], recurseHeaders[6],
+				true)
 			row++
 			continue
 		}
@@ -158,7 +159,7 @@ func recurse(level int, root, start, path string, parents map[string][]string) {
 		if ok {
 			leaf = "No"
 		}
-		writeRow(sLevel, root, start, child, sPath, leaf, cycle)
+		writeRow(sLevel, root, start, child, sPath, leaf, cycle, false)
 		if cycle == "No" && ok {
 			recurse(level, root, child, sPath, parents)
 		}
@@ -166,13 +167,17 @@ func recurse(level int, root, start, path string, parents map[string][]string) {
 
 }
 
-func writeRow(level, root, parent, child, path, leaf, cycle string) {
+func writeRow(level, root, parent, child, path, leaf, cycle string, headerrow bool) {
 	var cells []string
 	cells = append(cells, level)
 	cells = append(cells, root)
 	cells = append(cells, parent)
 	cells = append(cells, child)
-	cells = append(cells, path)
+	if headerrow {
+		cells = append(cells, path)
+	} else {
+		cells = append(cells, path+*delimiter)
+	}
 	cells = append(cells, leaf)
 	cells = append(cells, cycle)
 
