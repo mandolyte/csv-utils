@@ -3,10 +3,10 @@ This utility removed duplicate rows. The input must be sorted!
 
 Use -help to show:
 ```
-$ dedupcsv -help
+$ uniqcsv -help
 Help Message
 
-Usage: dedupcsv [options]
+Usage: uniqcsv [options]
 NOTE: must be sorted; only compares row against prior row.  -headers
         CSV has headers (default true)
   -help
