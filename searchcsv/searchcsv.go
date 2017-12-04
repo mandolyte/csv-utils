@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/mandolyte/rangespec"
+	"github.com/mandolyte/csv-utils"
 )
 
 var cs *rangespec.RangeSpec

@@ -8,7 +8,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/mandolyte/rangespec"
+	"github.com/mandolyte/csv-utils"
 )
 
 var rs *rangespec.RangeSpec
