@@ -13,7 +13,6 @@ import (
 
 var f1name = flag.String("f1", "", "First CSV file name to compare")
 var f2name = flag.String("f2", "", "Second CSV file name to compare")
-var keepdups = flag.Bool("keepdups", false, "Keep duplicate rows; default is false")
 var help = flag.Bool("help", false, "Show help message")
 
 /*
@@ -254,7 +253,8 @@ func main() {
 
 func usage() {
 	flag.PrintDefaults()
-	fmt.Println("NOTE: Headers on the CSV files are expected")
+	fmt.Println("NOTE 1: Headers on the CSV files are expected.")
+	fmt.Println("NOTE 2: Duplicates are omitted in all outputs.")
 	os.Exit(0)
 }
 
