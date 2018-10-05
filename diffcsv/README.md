@@ -43,6 +43,8 @@ Usage: diffcsv [options]
         - both must have a header row and the headers must be the same
 ```
 
+## Normal Cases
+
 Compare two identical files (using same file for both inputs):
 ```
 $ cat input1.csv
@@ -101,6 +103,8 @@ EQ,Y,2,2
 IN=1,Z,3,3
 ```
 
+## Error Conditions
+
 Compare two files with headers that don't match:
 ```
 $ cat input4.csv
@@ -125,6 +129,24 @@ Z,9,9,9
 $ go run diffcsv.go -key 1 -f1 input1.csv -f2 input5.csv -o test5.csv
 2018/10/04 21:27:24 Start: Oct  4 21:27:24.851
 2018/10/04 21:27:24 Different number of columns:3 vs. 4
+exit status 1
+$
+```
+
+Compare two files where one has a non-unique key:
+```
+$ cat input6.csv
+A,B,C,D
+X,1,1,1
+Y,2,2,2
+Z,9,9,9
+X,1,2,3
+$ go run diffcsv.go -key 1 -f1 input1.csv -f2 input6.csv -o test6.csv
+2018/10/05 07:15:00 Start: Oct  5 07:15:00.105
+2018/10/05 07:15:00 Processing input #1:input1.csv
+2018/10/05 07:15:00 Number of rows in file input1.csv:3
+2018/10/05 07:15:00 Processing input #2:input6.csv
+2018/10/05 07:15:00 Key value not unique: X on row 4
 exit status 1
 $
 ```

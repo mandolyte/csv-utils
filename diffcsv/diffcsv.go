@@ -148,6 +148,7 @@ func main() {
 		log.Fatalf("Output Error:\n%v\n", err)
 	}
 
+	log.Printf("Processing input #1:%v\n", *f1name)
 	f1map := make(map[string][]string)
 	// read first file
 	rows := 0
@@ -170,6 +171,7 @@ func main() {
 	log.Printf("Number of rows in file %v:%v\n", *f1name, rows)
 	f1.Close()
 
+	log.Printf("Processing input #2:%v\n", *f2name)
 	f2map := make(map[string][]string)
 	// read second file
 	rows = 0
