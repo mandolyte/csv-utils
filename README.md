@@ -2,7 +2,7 @@
 
 This repo has a collection of CSV utilities to concatenate,
 compare, dedup, edit, obfuscate, pivot, recurse, reorder,
-search, sort, and split.
+search, sort, split, and do a "diff".
 
 Each utility has its own README with examples.
 

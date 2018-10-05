@@ -1,0 +1,5 @@
+STATUS,A,B,C
+IN=2,W,3,3
+EQ,X,1,1
+EQ,Y,2,2
+IN=1,Z,3,3

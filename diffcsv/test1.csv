@@ -1,0 +1,4 @@
+STATUS,A,B,C
+EQ,X,1,1
+EQ,Y,2,2
+EQ,Z,3,3
