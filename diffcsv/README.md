@@ -14,6 +14,10 @@ Usage: diffcsv [options]
         Key column in input CSVs (first is 1); must be unique
   -o string
         Output CSV file for differences
+  -ondupFirst
+        On duplicate key, keep first one
+  -ondupLast
+        On duplicate key, keep last  one
 
         Detailed Help:
         Inputs:
@@ -25,8 +29,10 @@ Usage: diffcsv [options]
         a) The first file will be read and stored into a map
         b) The second file will be read and stored into a map
         c) It is an error if a file has the same key value on two rows.
-        Keys must be unique within each file.
+        Keys must be unique within each file. 
         Note that key column number is one based, not zero based!
+        NOTE! if duplicate keys exist, then there are options to keep
+        the first or to keep the last one. Default is to error out.
         d) Then all keys from both inputs are combined/deduped/sorted
         e) Then we range over the combined keyset and output a new CSV
         that has a new status column as the first column and the other columns
