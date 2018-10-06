@@ -17,6 +17,8 @@ var f2name = flag.String("f2", "", "Second CSV file name to compare")
 var output = flag.String("o", "", "Output CSV file for differences")
 var key = flag.Int("key", 0, "Key column in input CSVs (first is 1); must be unique")
 var help = flag.Bool("help", false, "Show help message")
+var ondupfirst = flag.Bool("ondupFirst", false, "On duplicate key, keep first one")
+var onduplast = flag.Bool("ondupLast", false, "On duplicate key, keep last  one")
 
 var detailedHelp = `
 	Detailed Help:
@@ -31,6 +33,8 @@ var detailedHelp = `
 	c) It is an error if a file has the same key value on two rows.
 	Keys must be unique within each file. 
 	Note that key column number is one based, not zero based!
+	NOTE! if duplicate keys exist, then there are options to keep
+	the first or to keep the last one. Default is to error out.
 	d) Then all keys from both inputs are combined/deduped/sorted
 	e) Then we range over the combined keyset and output a new CSV
 	that has a new status column as the first column and the other columns
@@ -161,12 +165,19 @@ func main() {
 		if rerr != nil {
 			log.Fatalf("csv.Read:\n%v\n", rerr)
 		}
+		rows++
 		keyv := cells[*key-1]
 		if _, ok := f1map[keyv]; ok {
-			log.Fatalf("Key value not unique: %v on row %v\n", keyv, rows+1)
+			if *onduplast {
+				log.Printf("Replacing non-unique key: %v on row %v\n", keyv, rows+1)
+			} else if *ondupfirst {
+				log.Printf("Skipping non-unique key: %v on row %v\n", keyv, rows+1)
+				continue
+			} else {
+				log.Fatalf("Key value not unique: %v on row %v\n", keyv, rows+1)
+			}
 		}
 		f1map[keyv] = cells
-		rows++
 	}
 	log.Printf("Number of rows in file %v:%v\n", *f1name, rows)
 	f1.Close()
@@ -184,12 +195,19 @@ func main() {
 		if rerr != nil {
 			log.Fatalf("csv.Read:\n%v\n", rerr)
 		}
+		rows++
 		keyv := cells[*key-1]
 		if _, ok := f2map[keyv]; ok {
-			log.Fatalf("Key value not unique: %v on row %v\n", keyv, rows+1)
+			if *onduplast {
+				log.Printf("Replacing non-unique key: %v on row %v\n", keyv, rows+1)
+			} else if *ondupfirst {
+				log.Printf("Skipping non-unique key: %v on row %v\n", keyv, rows+1)
+				continue
+			} else {
+				log.Fatalf("Key value not unique: %v on row %v\n", keyv, rows+1)
+			}
 		}
 		f2map[keyv] = cells
-		rows++
 	}
 	log.Printf("Number of rows in file %v:%v\n", *f2name, rows)
 	f2.Close()
