@@ -76,6 +76,11 @@ func main() {
 		usage("Output filename is missing.")
 	}
 
+	if *ondupFirst && *ondupLast {
+		fmt.Println()
+		usage("Cannot use both on-dup options")
+	}
+
 	now := time.Now()
 	log.Printf("Start: %v", now.Format(time.StampMilli))
 
