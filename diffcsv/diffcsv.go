@@ -76,7 +76,7 @@ func main() {
 		usage("Output filename is missing.")
 	}
 
-	if *ondupFirst && *ondupLast {
+	if *ondupfirst && *onduplast {
 		fmt.Println()
 		usage("Cannot use both on-dup options")
 	}
