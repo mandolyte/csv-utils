@@ -1,4 +1,4 @@
- Comparecsv
+# Comparecsv
 This utility compares two CSV files using Merkle Tree conceps, 
 namely, hashes of the rows are the basis of the compare logic.
 
@@ -18,6 +18,11 @@ NOTE 1: Headers on the CSV files are expected.
 NOTE 2: Duplicates are omitted in all outputs.
 $
 ```
+
+It produces three output files, which are currently fixed:
+- f1only.csv contains the rows unique to file 1
+- f2only.csv contains the rows unique to file 2
+- both.csv contains the rows common to both input files
 
 ## Examples
 A simple test to validate basic operations:
