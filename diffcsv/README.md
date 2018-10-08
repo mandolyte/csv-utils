@@ -79,6 +79,7 @@ A,B,C
 X,1,1
 Y,2,2
 Z,9,9
+$ go run diffcsv.go -key 1 -f1 input1.csv -f2 input3.csv -o test3.csv
 $ cat test2.csv
 STATUS,A,B,C
 EQ,X,1,1

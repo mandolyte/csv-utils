@@ -19,6 +19,7 @@ var key = flag.Int("key", 0, "Key column in input CSVs (first is 1); must be uni
 var help = flag.Bool("help", false, "Show help message")
 var ondupfirst = flag.Bool("ondupFirst", false, "On duplicate key, keep first one")
 var onduplast = flag.Bool("ondupLast", false, "On duplicate key, keep last  one")
+var noeq = flag.Bool("noeq", false, "Suppress matches, showing only differences")
 
 var detailedHelp = `
 	Detailed Help:
@@ -241,6 +242,12 @@ func main() {
 		return keys[i] < keys[j]
 	})
 
+	// counts
+	eqCount := 0
+	diffCount := 0
+	f1UniqCount :=0
+	f2UniqCount :=0
+
 	// Now range of combined unique keys
 	for n := range keys {
 		val := keys[n]
@@ -257,6 +264,10 @@ func main() {
 				diffList = append(diffList, f)
 			}
 			if len(diffList) == 0 {
+				eqCount++
+				if *noeq {
+					continue
+				}
 				outrow1 := make([]string, 0)
 				outrow1 = append(outrow1, "EQ")
 				outrow1 = append(outrow1, row1...)
@@ -265,6 +276,7 @@ func main() {
 					log.Fatalf("Output Write() Error: %v\n", err)
 				}
 			} else {
+				diffCount++
 				diffs := ""
 				for i := range diffList {
 					diffs += fmt.Sprintf("%v,", diffList[i]+2)
@@ -287,6 +299,7 @@ func main() {
 			}
 		} else {
 			if !ok1 {
+				f2UniqCount++
 				outrow := make([]string, 0)
 				outrow = append(outrow, "IN=2")
 				outrow = append(outrow, row2...)
@@ -295,6 +308,7 @@ func main() {
 					log.Fatalf("Output Write() Error: %v\n", err)
 				}
 			} else {
+				f1UniqCount++
 				outrow := make([]string, 0)
 				outrow = append(outrow, "IN=1")
 				outrow = append(outrow, row1...)
@@ -313,6 +327,12 @@ func main() {
 	elapsed := time.Since(now)
 	log.Printf("End: %v", stop.Format(time.StampMilli))
 	log.Printf("Elapsed time %v", elapsed)
+
+	log.Printf("------- Summary -------\n")
+	log.Printf("Equal Count: %v\n", eqCount)
+	log.Printf("Key Diff Count: %v\n", diffCount)
+	log.Printf("Unique to input #1: %v\n", f1UniqCount)
+	log.Printf("Unique to input #2: %v\n", f2UniqCount)
 
 }
 
