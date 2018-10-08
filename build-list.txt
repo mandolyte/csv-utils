@@ -1,6 +1,7 @@
 catcsv
 comparecsv
 dedupcsv
+diffcsv
 editcsv
 obfuscatecsv
 pivotcsv
