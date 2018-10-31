@@ -1,25 +1,38 @@
 # Diffcsv
+
+Latest changes (2018-10-31):
+- Added aliasing option of input files; default is DF1 and DF2 as before
+- Added option to add numbers to column headers to make it easier to 
+reference columns with differences
+
 Use the -help argument to show:
 ```
-$ go run diffcsv.go -help
-
+$ go run diffcsv.go
+Key column number missing.
 Usage: diffcsv [options]
+  -colnums
+        Add difference column numbers to headers
+  -df1 string
+        Alias for first input file; default DF1 (default "DF1")
+  -df2 string
+        Alias for second input file; default DF2 (default "DF2")
   -f1 string
-    	First CSV file name to compare
+        First CSV file name to compare
   -f2 string
-    	Second CSV file name to compare
+        Second CSV file name to compare
   -help
-    	Show help message
+        Show help message
   -key int
-    	Key column in input CSVs (first is 1); must be unique
+        Key column in input CSVs (first is 1); must be unique
   -noeq
-    	Suppress matches, showing only differences
+        Suppress matches, showing only differences
   -o string
-    	Output CSV file for differences
+        Output CSV file for differences
   -ondupFirst
-    	On duplicate key, keep first one
+        On duplicate key, keep first one
   -ondupLast
-    	On duplicate key, keep last  one
+        On duplicate key, keep last  one
+$
 
 	Detailed Help:
 	Inputs:
@@ -98,26 +111,28 @@ EQ,Y,2,2
 "DF2=2,3",Z,9,9
 ```
 
-Same as above, but show only differences:
+Same as above, but show only differences; use aliases and column numbers:
 ```
-$ go run diffcsv.go -key 1 -f1 input1.csv -f2 input3.csv -o test3.csv -noeq
-2018/10/08 06:53:48 Start: Oct  8 06:53:48.461
-2018/10/08 06:53:48 Processing input #1:input1.csv
-2018/10/08 06:53:48 Number of rows in file input1.csv:3
-2018/10/08 06:53:48 Processing input #2:input3.csv
-2018/10/08 06:53:48 Number of rows in file input3.csv:3
-2018/10/08 06:53:48 Number of combined unique keys:3
-2018/10/08 06:53:48 End: Oct  8 06:53:48.462
-2018/10/08 06:53:48 Elapsed time 983.792µs
-2018/10/08 06:53:48 ------- Summary -------
-2018/10/08 06:53:48 Equal Count: 2
-2018/10/08 06:53:48 Key Diff Count: 1
-2018/10/08 06:53:48 Unique to input #1: 0
-2018/10/08 06:53:48 Unique to input #2: 0
+$ go run diffcsv.go -key 1 -f1 input1.csv -f2 input3.csv \
+	-o test3.csv -noeq \
+	-df1 i1 -df2 i2 -colnums
+2018/10/31 07:03:26 Start: Oct 31 07:03:26.298
+2018/10/31 07:03:26 Processing input #1:input1.csv
+2018/10/31 07:03:26 Number of rows in file input1.csv:3
+2018/10/31 07:03:26 Processing input #2:input3.csv
+2018/10/31 07:03:26 Number of rows in file input3.csv:3
+2018/10/31 07:03:26 Number of combined unique keys:3
+2018/10/31 07:03:26 End: Oct 31 07:03:26.300
+2018/10/31 07:03:26 Elapsed time 1.9993ms
+2018/10/31 07:03:26 ------- Summary -------
+2018/10/31 07:03:26 Equal Count: 2
+2018/10/31 07:03:26 Key Diff Count: 1
+2018/10/31 07:03:26 Unique to input #1: 0
+2018/10/31 07:03:26 Unique to input #2: 0
 $ cat test3.csv
-STATUS,A,B,C
-"DF1=2,3",Z,3,3
-"DF2=2,3",Z,9,9
+STATUS,1-A,2-B,3-C
+"i1=2,3",Z,3,3
+"i2=2,3",Z,9,9
 $ 
 ```
 

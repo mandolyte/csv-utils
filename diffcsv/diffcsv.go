@@ -20,6 +20,9 @@ var help = flag.Bool("help", false, "Show help message")
 var ondupfirst = flag.Bool("ondupFirst", false, "On duplicate key, keep first one")
 var onduplast = flag.Bool("ondupLast", false, "On duplicate key, keep last  one")
 var noeq = flag.Bool("noeq", false, "Suppress matches, showing only differences")
+var df1 = flag.String("df1", "DF1", "Alias for first input file; default DF1")
+var df2 = flag.String("df2", "DF2", "Alias for second input file; default DF2")
+var colnums = flag.Bool("colnums", false, "Add difference column numbers to headers")
 
 var detailedHelp = `
 	Detailed Help:
@@ -138,6 +141,13 @@ func main() {
 		log.Fatal("Headers are not the same on input files")
 	}
 
+	// check on whether to add column numbers to headers
+	if *colnums {
+		for i := range hdrs1 {
+			hdrs1[i] = fmt.Sprintf("%v-%v", i+1, hdrs1[i])
+		}
+	}
+
 	// set expectations of fields per row
 	r1.FieldsPerRecord = numcols1
 	r2.FieldsPerRecord = numcols1
@@ -245,8 +255,8 @@ func main() {
 	// counts
 	eqCount := 0
 	diffCount := 0
-	f1UniqCount :=0
-	f2UniqCount :=0
+	f1UniqCount := 0
+	f2UniqCount := 0
 
 	// Now range of combined unique keys
 	for n := range keys {
@@ -283,14 +293,14 @@ func main() {
 				}
 				diffs = strings.TrimRight(diffs, ",")
 				outrow1 := make([]string, 0)
-				outrow1 = append(outrow1, fmt.Sprintf("DF1=%v", diffs))
+				outrow1 = append(outrow1, fmt.Sprintf("%v=%v", *df1, diffs))
 				outrow1 = append(outrow1, row1...)
 				err := wf1.Write(outrow1)
 				if err != nil {
 					log.Fatalf("Output Write() Error: %v\n", err)
 				}
 				outrow2 := make([]string, 0)
-				outrow2 = append(outrow2, fmt.Sprintf("DF2=%v", diffs))
+				outrow2 = append(outrow2, fmt.Sprintf("%v=%v", *df2, diffs))
 				outrow2 = append(outrow2, row2...)
 				err = wf1.Write(outrow2)
 				if err != nil {
