@@ -20,9 +20,11 @@ var help = flag.Bool("help", false, "Show help message")
 var ondupfirst = flag.Bool("ondupFirst", false, "On duplicate key, keep first one")
 var onduplast = flag.Bool("ondupLast", false, "On duplicate key, keep last  one")
 var noeq = flag.Bool("noeq", false, "Suppress matches, showing only differences")
-var df1 = flag.String("df1", "DF1", "Alias for first input file; default DF1")
-var df2 = flag.String("df2", "DF2", "Alias for second input file; default DF2")
+var alias1 = flag.String("alias1", "F1", "Alias for first input file; default F1")
+var alias2 = flag.String("alias2", "F2", "Alias for second input file; default F2")
 var colnums = flag.Bool("colnums", false, "Add difference column numbers to headers")
+var ignoreCase = flag.Bool("ignoreCase", true, "Ignore case when comparing; default true")
+var trimSpace = flag.Bool("trimSpace", true, "Ignore leading and trailing spaces when comparing; default true")
 
 var detailedHelp = `
 	Detailed Help:
@@ -182,7 +184,15 @@ func main() {
 			log.Fatalf("csv.Read:\n%v\n", rerr)
 		}
 		rows++
+		if *trimSpace {
+			for n := range cells {
+				cells[n] = strings.TrimSpace(cells[n])
+			}
+		}
 		keyv := cells[*key-1]
+		if *ignoreCase {
+			keyv = strings.ToLower(keyv)
+		}
 		if _, ok := f1map[keyv]; ok {
 			if *onduplast {
 				log.Printf("Replacing non-unique key: %v on row %v\n", keyv, rows+1)
@@ -212,7 +222,15 @@ func main() {
 			log.Fatalf("csv.Read:\n%v\n", rerr)
 		}
 		rows++
+		if *trimSpace {
+			for n := range cells {
+				cells[n] = strings.TrimSpace(cells[n])
+			}
+		}
 		keyv := cells[*key-1]
+		if *ignoreCase {
+			keyv = strings.ToLower(keyv)
+		}
 		if _, ok := f2map[keyv]; ok {
 			if *onduplast {
 				log.Printf("Replacing non-unique key: %v on row %v\n", keyv, rows+1)
@@ -270,6 +288,11 @@ func main() {
 				if row1[i] == row2[i] {
 					continue
 				}
+				if *ignoreCase {
+					if strings.EqualFold(row1[i], row2[i]) {
+						continue
+					}
+				}
 				f := i - 1
 				diffList = append(diffList, f)
 			}
@@ -293,14 +316,14 @@ func main() {
 				}
 				diffs = strings.TrimRight(diffs, ",")
 				outrow1 := make([]string, 0)
-				outrow1 = append(outrow1, fmt.Sprintf("%v=%v", *df1, diffs))
+				outrow1 = append(outrow1, fmt.Sprintf("%v=%v", *alias1, diffs))
 				outrow1 = append(outrow1, row1...)
 				err := wf1.Write(outrow1)
 				if err != nil {
 					log.Fatalf("Output Write() Error: %v\n", err)
 				}
 				outrow2 := make([]string, 0)
-				outrow2 = append(outrow2, fmt.Sprintf("%v=%v", *df2, diffs))
+				outrow2 = append(outrow2, fmt.Sprintf("%v=%v", *alias2, diffs))
 				outrow2 = append(outrow2, row2...)
 				err = wf1.Write(outrow2)
 				if err != nil {
@@ -311,7 +334,7 @@ func main() {
 			if !ok1 {
 				f2UniqCount++
 				outrow := make([]string, 0)
-				outrow = append(outrow, "IN=2")
+				outrow = append(outrow, fmt.Sprintf("IN=%v", *alias2))
 				outrow = append(outrow, row2...)
 				err := wf1.Write(outrow)
 				if err != nil {
@@ -320,7 +343,7 @@ func main() {
 			} else {
 				f1UniqCount++
 				outrow := make([]string, 0)
-				outrow = append(outrow, "IN=1")
+				outrow = append(outrow, fmt.Sprintf("IN=%v", *alias1))
 				outrow = append(outrow, row1...)
 				err := wf1.Write(outrow)
 				if err != nil {

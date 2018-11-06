@@ -1,27 +1,36 @@
 # Diffcsv
 
-Latest changes (2018-10-31):
+Todo:
+- Considering adding a "map" option where you can supply a JSON formatted map of value transformations. Possibly using regualar expressions as matching values.
+
+Changes (2018-11-06):
+- Renamed the alias parameters as "alias1" and "alias2" with defaults of "f1" and "f2"
+- Added `trimSpace` and `ignoreCase` options. The ignore case option applies to the *key* values.
+
+Changes (2018-10-31):
 - Added aliasing option of input files; default is DF1 and DF2 as before
 - Added option to add numbers to column headers to make it easier to 
 reference columns with differences
 
 Use the -help argument to show:
 ```
-$ go run diffcsv.go
-Key column number missing.
+$ diffcsv -help
+
 Usage: diffcsv [options]
+  -alias1 string
+        Alias for first input file; default F1 (default "F1")
+  -alias2 string
+        Alias for second input file; default F2 (default "F2")
   -colnums
         Add difference column numbers to headers
-  -df1 string
-        Alias for first input file; default DF1 (default "DF1")
-  -df2 string
-        Alias for second input file; default DF2 (default "DF2")
   -f1 string
         First CSV file name to compare
   -f2 string
         Second CSV file name to compare
   -help
         Show help message
+  -ignoreCase
+        Ignore case when comparing; default true (default true)
   -key int
         Key column in input CSVs (first is 1); must be unique
   -noeq
@@ -32,7 +41,8 @@ Usage: diffcsv [options]
         On duplicate key, keep first one
   -ondupLast
         On duplicate key, keep last  one
-$
+  -trimSpace
+        Ignore leading and trailing spaces when comparing; default true (default true)
 
 	Detailed Help:
 	Inputs:
@@ -151,6 +161,41 @@ IN=2,W,3,3
 EQ,X,1,1
 EQ,Y,2,2
 IN=1,Z,3,3
+```
+
+Compare two files where trim space and ignore case are needed:
+```
+$ cat input7.csv
+A,B,C
+X,1,1
+Y,2,3
+W,3,3
+$ cat input8.csv
+A,B,C
+x,1,1
+ Y ,2,3
+ w ,3,3
+$ go run diffcsv.go -key 1 -f1 input7.csv -f2 input8.csv -alias1 f1 -alias2 f2 -trimSpace=true -ignoreCase=false -o test7.csv
+2018/11/06 13:37:09 Start: Nov  6 13:37:09.884
+2018/11/06 13:37:09 Processing input #1:input7.csv
+2018/11/06 13:37:09 Number of rows in file input7.csv:3
+2018/11/06 13:37:09 Processing input #2:input8.csv
+2018/11/06 13:37:09 Number of rows in file input8.csv:3
+2018/11/06 13:37:09 Number of combined unique keys:5
+2018/11/06 13:37:09 End: Nov  6 13:37:09.886
+2018/11/06 13:37:09 Elapsed time 1.9977ms
+2018/11/06 13:37:09 ------- Summary -------
+2018/11/06 13:37:09 Equal Count: 1
+2018/11/06 13:37:09 Key Diff Count: 0
+2018/11/06 13:37:09 Unique to input #1: 2
+2018/11/06 13:37:09 Unique to input #2: 2
+$ cat test7.csv
+STATUS,A,B,C
+IN=f1,W,3,3
+IN=f1,X,1,1
+EQ,Y,2,3
+IN=f2,w,3,3
+IN=f2,x,1,1
 ```
 
 ## Error Conditions
