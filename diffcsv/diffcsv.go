@@ -364,8 +364,8 @@ func main() {
 	log.Printf("------- Summary -------\n")
 	log.Printf("Equal Count: %v\n", eqCount)
 	log.Printf("Key Diff Count: %v\n", diffCount)
-	log.Printf("Unique to input #1: %v\n", f1UniqCount)
-	log.Printf("Unique to input #2: %v\n", f2UniqCount)
+	log.Printf("Unique to input #1 %v: %v\n", *alias1,f1UniqCount)
+	log.Printf("Unique to input #2 %v: %v\n", *alias2,f2UniqCount)
 
 }
 
