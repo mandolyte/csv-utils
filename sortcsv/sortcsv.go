@@ -25,7 +25,7 @@ func (t *table) Swap(i, j int) {
 }
 
 func (t *table) Less(i, j int) bool {
-	isless := true
+	isless := false
 	for n := range t.col {
 		ith := t.records[i][t.col[n]-1]
 		jth := t.records[j][t.col[n]-1]
@@ -39,12 +39,14 @@ func (t *table) Less(i, j int) bool {
 			} else {
 				isless = false
 			}
+			break
 		} else {
 			if t.seq[n] {
 				isless = false
 			} else {
 				isless = true
 			}
+			break
 		}
 	}
 	//log.Printf("Returning %v\n", isless)
@@ -53,7 +55,7 @@ func (t *table) Less(i, j int) bool {
 
 func main() {
 	sortseq := flag.String("s", "", "Comma delimited list of letters 'a' or 'd', for ascending or descending (default is ascending)")
-	sortcol := flag.String("c", "1", "Comma delimited list of columns to sort (default 1)")
+	sortcol := flag.String("c", "1", "Comma delimited list of columns to sort")
 	sortinf := flag.String("i", "", "CSV file name to sort; default STDIN")
 	sortout := flag.String("o", "", "CSV output file name; default STDOUT")
 	headers := flag.Bool("headers", true, "CSV has headers")
