@@ -2,23 +2,18 @@ package main
 
 import (
 	"encoding/csv"
-	"encoding/json"
 	"flag"
-	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 )
 
-var m map[string]interface{}
-var hasMap bool
-
 type table struct {
-	records   [][]string
-	ascending bool
-	column    int
+	records [][]string
+	seq     []bool
+	col     []int
 }
 
 func (t *table) Len() int {
@@ -30,81 +25,45 @@ func (t *table) Swap(i, j int) {
 }
 
 func (t *table) Less(i, j int) bool {
-	if hasMap {
-		ival, iok := m[t.records[i][t.column]]
-		if !iok {
-			ival, iok = m["*"]
-			if !iok {
-				ival = t.records[i][t.column]
+	isless := false
+	for n := range t.col {
+		ith := t.records[i][t.col[n]-1]
+		jth := t.records[j][t.col[n]-1]
+		if ith == jth {
+			continue
+		}
+		//log.Printf("Compare %v vs %v\n", ith, jth)
+		if ith < jth {
+			if t.seq[n] {
+				isless = true
+			} else {
+				isless = false
 			}
-		}
-		jval, jok := m[t.records[j][t.column]]
-		if !jok {
-			jval, jok = m["*"]
-			if !jok {
-				jval = t.records[j][t.column]
+			break
+		} else {
+			if t.seq[n] {
+				isless = false
+			} else {
+				isless = true
 			}
+			break
 		}
-		var isless bool
-		switch t := ival.(type) {
-		case float64:
-			isless = ival.(float64) < jval.(float64)
-			//log.Printf("Comparing float64 %v %v", ival, jval)
-		case string:
-			isless = ival.(string) < jval.(string)
-			//log.Printf("Comparing STRING %v %v", ival, jval)
-		default:
-			log.Fatalf("Unsupported type:%T\n", t)
-		}
-		if t.ascending {
-			return isless
-		}
-		return !isless
 	}
-	isless := t.records[i][t.column] < t.records[j][t.column]
-	if t.ascending {
-		return isless
-	}
-	return !isless
+	//log.Printf("Returning %v\n", isless)
+	return isless
 }
 
 func main() {
-	sortasc := flag.Bool("a", true, "Sort ascending (default true)")
-	sortcol := flag.Int("c", 0, "Column to sort (default 0)")
+	sortseq := flag.String("s", "", "Comma delimited list of letters 'a' or 'd', for ascending or descending (default is ascending)")
+	sortcol := flag.String("c", "1", "Comma delimited list of columns to sort")
 	sortinf := flag.String("i", "", "CSV file name to sort; default STDIN")
 	sortout := flag.String("o", "", "CSV output file name; default STDOUT")
 	headers := flag.Bool("headers", true, "CSV has headers")
-	colmap := flag.String("m", "", "Map to use instead of column values")
-	help := flag.Bool("help",false,"Show help message")
+	help := flag.Bool("help", false, "Show help message")
 	flag.Parse()
 
 	if *help {
 		usage()
-		os.Exit(0)	}
-
-	if len(flag.Args()) > 0 {
-		usage()
-		os.Exit(1)
-	}
-
-	//var jybte []byte
-	if *colmap != "" {
-		// json map available
-		mi, mierr := os.Open(*colmap)
-		if mierr != nil {
-			log.Fatal("os.Open() Error:" + mierr.Error())
-		}
-		defer mi.Close()
-		jbyte, jerr := ioutil.ReadAll(mi)
-		if jerr != nil {
-			log.Fatal("ioutil.ReadAll() Error:" + jerr.Error())
-		}
-		dec := json.NewDecoder(strings.NewReader(string(jbyte)))
-		if err := dec.Decode(&m); err != nil {
-			log.Println(err)
-			return
-		}
-		hasMap = true
 	}
 
 	// open output file
@@ -150,7 +109,43 @@ func main() {
 		csvall = csvall[1:]
 	}
 
-	t := &table{records: csvall, ascending: *sortasc, column: *sortcol}
+	// parse columns input
+	collist := strings.Split(*sortcol, ",")
+	seqlist := strings.Split(*sortseq, ",")
+	clist := make([]int, len(collist))
+	slist := make([]bool, len(collist))
+	for i := range collist {
+		x, err := strconv.Atoi(collist[i])
+		if err != nil {
+			log.Fatalf("Element of column sort list is not an integer:%v\n", collist[i])
+		}
+		if x == 0 {
+			log.Fatal("Column numbers begin at 1 not zero\n")
+		}
+		clist[i] = x
+		if clist[i] > len(csvall[0]) {
+			log.Fatalf("Column is larger than number of cells in row:%v\n", clist[i])
+		}
+		// now set the sort sequence for the column
+		if i < len(seqlist) {
+			if seqlist[i] == "a" || seqlist[i] == "" {
+				slist[i] = true
+			} else if seqlist[i] == "d" {
+				slist[i] = false
+			} else {
+				log.Fatal("Sort sequence must 'a' for ascending or 'd' for descending\n")
+			}
+		} else {
+			slist[i] = true
+		}
+	}
+
+	/* debugging */
+	/*
+		log.Printf("Sort columns:%v\n", clist)
+		log.Printf("Sequence columns: %v\n", slist)
+	*/
+	t := &table{records: csvall, seq: slist, col: clist}
 
 	//sort.Sort(t)
 	sort.Stable(t)
@@ -163,20 +158,6 @@ func main() {
 }
 
 func usage() {
-	exampleJSON := `
-{
-"NP": 0,
-"*": 1
-}
-`
 	flag.PrintDefaults()
-	fmt.Println("Map parameter is a filename of a JSON string")
-	fmt.Println("The JSON string maps column values to values to be")
-	fmt.Println("used for sorting. For example the following will")
-	fmt.Println("sort all values of NP first:")
-	fmt.Println(exampleJSON)
-	fmt.Println("The asterisk is used to provide a default.")
-	fmt.Println("A default rule is required. If the default")
-	fmt.Println("mapping is also an asterisk, then the original")
-	fmt.Println("value is used.")
+	os.Exit(0)
 }
