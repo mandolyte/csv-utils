@@ -2,6 +2,18 @@
 This utility will sort a CSV file. However, it is done in-memory
 and has limits.
 
+*To Do* 
+- Remove the mapping option... not that useful. Consider another
+CSV utility to map values
+- Allow specification of a comma delimited list of column numbers
+to sort on
+- To with above, add some method of specifying ascending or 
+descending for each of the columns provided. Default to ascending
+for all of them.
+- To be consistent with other utilities, have columns start at 1,
+not zero.
+
+## Information
 Use the -help argument to show:
 
 ```
