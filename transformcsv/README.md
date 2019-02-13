@@ -42,7 +42,8 @@ $
 Then this command will generate SQL INSERT statements for each row
 in the CSV file.
 ```
-$ go run transformcsv.go -i test1.csv -t template1.txt -m mp 
+$ go run transformcsv.go -i test1.csv -t template1.txt -m mp -o trans1.sql
+$ cat trans1.sql
 INSERT INTO atable (column1, column2, column3)
 VALUES ('v1.1', 'v1.2', 'v1.3')
 ;

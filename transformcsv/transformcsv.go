@@ -36,9 +36,9 @@ func main() {
 
 
 	// open output file
-	var w io.Writer
+	var w *bufio.Writer
 	if *output == "" {
-		w = os.Stdout
+		w = bufio.NewWriter(os.Stdout)
 	} else {
 		fo, foerr := os.Create(*output)
 		if foerr != nil {
@@ -88,6 +88,7 @@ func main() {
 			log.Fatal("Write error to output:"+err.Error())
 		}
 	}
+	w.Flush()
 }
 
 func writeTemplate(w io.Writer, tmpltext,amap string, hdrs, cells []string) error {
