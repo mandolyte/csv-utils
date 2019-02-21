@@ -11,3 +11,4 @@ reordercsv
 searchcsv
 sortcsv
 splitcsv
+transformcsv
