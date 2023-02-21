@@ -37,3 +37,25 @@ D,E,F
 6,6,6
 $
 ```
+
+To upgrade to the new mod system:
+
+1. created a subfolder named rangespec
+2. copied the rangespec.go from project into it.
+3. ran the "go mod" command:
+```
+$ go mod init github.com/mandolyte/csv-utils/splitcsv
+```
+4. then changed my import to be:
+```go
+import (
+        "encoding/csv"
+        "flag"
+        "fmt"
+        "io"
+        "log"
+        "os"
+        "github.com/mandolyte/csv-utils/splitcsv/rangespec"
+)
+```
+

@@ -7,8 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
-
-	"github.com/mandolyte/csv-utils"
+	"github.com/mandolyte/csv-utils/splitcsv/rangespec"
 )
 
 var rs *rangespec.RangeSpec
